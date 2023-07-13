@@ -62,6 +62,9 @@ if __name__ == '__main__':
     parser.add_argument('--clip_text', type=str, default='', help="text input for CLIP guidance")
     parser.add_argument('--rand_pose', type=int, default=-1, help="<0 uses no rand pose, =0 only uses rand pose, >0 sample one rand pose every $ known poses")
 
+    ##edit
+    parser.add_argument('--save_img', action='store_true', help="extract image from model")
+
     opt = parser.parse_args()
 
     if opt.O:
@@ -126,6 +129,11 @@ if __name__ == '__main__':
             trainer.test(test_loader, write_video=True) # test and save video
             
             trainer.save_mesh(resolution=256, threshold=10)
+
+    elif opt.save_img:
+        trainer = Trainer('ngp', opt, model, device=device, workspace=opt.workspace, criterion=criterion, fp16=opt.fp16, use_checkpoint=opt.ckpt)
+        save_img_loader = NeRFDataset(opt, device=device, type='save_img').dataloader()
+        trainer.save_img(save_img_loader)
     
     else:
 
