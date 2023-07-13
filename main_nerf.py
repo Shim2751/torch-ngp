@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
     elif opt.save_img:
         trainer = Trainer('ngp', opt, model, device=device, workspace=opt.workspace, criterion=criterion, fp16=opt.fp16, use_checkpoint=opt.ckpt)
-        save_img_loader = NeRFDataset(opt, device=device, type='save_img').dataloader()
+        save_img_loader = NeRFDataset(opt, device=device, type='test').dataloader()
         trainer.save_img(save_img_loader)
     
     else:
