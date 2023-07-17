@@ -631,17 +631,16 @@ class Trainer(object):
 
     def save_img(self, loader, save_path=None, name=None):
         if save_path is None:
-            save_path = os.path.join(self.workspace, 'imgs')
+            save_path = os.path.join(self.workspace, 'pseudo')
 
         self.log(f"==> Saving Images to {save_path}")
 
         os.makedirs(save_path, exist_ok=True)
         
         if name is None:
-            name = f'{self.name}_ep{self.epoch:04d}'
+            name = f'r'
 
         with torch.no_grad():
-
             for i, data in enumerate(loader):
                 
                 with torch.cuda.amp.autocast(enabled=self.fp16):
@@ -656,8 +655,8 @@ class Trainer(object):
                 pred_depth = preds_depth[0].detach().cpu().numpy()
                 pred_depth = (pred_depth * 255).astype(np.uint8)
 
-                cv2.imwrite(os.path.join(save_path, f'{name}_{i:04d}_rgb.png'), cv2.cvtColor(pred, cv2.COLOR_RGB2BGR))
-                cv2.imwrite(os.path.join(save_path, f'{name}_{i:04d}_depth.png'), pred_depth)
+                cv2.imwrite(os.path.join(save_path, f'{name}_{i}.png'), cv2.cvtColor(pred, cv2.COLOR_RGB2BGR))
+                cv2.imwrite(os.path.join(save_path, f'{name}_{i}_depth.png'), pred_depth)
         
         self.log(f"==> Finished Saving Images.")
 

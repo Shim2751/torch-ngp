@@ -330,3 +330,100 @@ class NeRFDataset:
         loader._data = self # an ugly fix... we need to access error_map & poses in trainer.
         loader.has_gt = self.images is not None
         return loader
+
+class PseudoDataset:
+    def __init__(self, opt, device, downscale=1, n_test=10):
+        super().__init__()
+        
+        self.opt = opt
+        self.device = device
+        self.downscale = downscale
+        self.root_path = opt.path
+        self.preload = opt.preload # preload data into GPU
+        self.scale = opt.scale # camera radius scale to make sure camera are inside the bounding box.
+        self.offset = opt.offset # camera offset
+        self.bound = opt.bound # bounding box half length, also used as the radius to random sample poses.
+        self.fp16 = opt.fp16 # if preload, load into fp16.
+
+        self.rand_pose = opt.rand_pose
+
+        # load nerf-compatible format data.
+        with open(os.path.join(self.root_path, f'transforms_pseudo.json'), 'r') as f:
+            transform = json.load(f)
+
+        # load image size
+        if 'h' in transform and 'w' in transform:
+            self.H = int(transform['h']) // downscale
+            self.W = int(transform['w']) // downscale
+        else:
+            # we have to actually read an image to get H and W later.
+            raise NotImplementedError('unknown image h, w')
+        
+        # read images
+        frames = transform["frames"]
+
+        self.poses = []
+        for f in tqdm.tqdm(frames, desc='Loading pseudo data'):
+            f_path = os.path.join(self.root_path, f['file_path'])
+            
+            pose = np.array(f['transform_matrix'], dtype=np.float32) # [4, 4]
+            pose = nerf_matrix_to_ngp(pose, scale=self.scale, offset=self.offset)
+
+            self.poses.append(pose)
+            
+        self.poses = torch.from_numpy(np.stack(self.poses, axis=0)) # [N, 4, 4]
+        
+        # calculate mean radius of all camera poses
+        self.radius = self.poses[:, :3, 3].norm(dim=-1).mean(0).item()
+        #print(f'[INFO] dataset camera poses: radius = {self.radius:.4f}, bound = {self.bound}')
+
+        self.error_map = None
+
+        if self.preload:
+            self.poses = self.poses.to(self.device)
+            if self.error_map is not None:
+                self.error_map = self.error_map.to(self.device)
+
+        # load intrinsics
+        if 'fl_x' in transform or 'fl_y' in transform:
+            fl_x = (transform['fl_x'] if 'fl_x' in transform else transform['fl_y']) / downscale
+            fl_y = (transform['fl_y'] if 'fl_y' in transform else transform['fl_x']) / downscale
+        elif 'camera_angle_x' in transform or 'camera_angle_y' in transform:
+            # blender, assert in radians. already downscaled since we use H/W
+            fl_x = self.W / (2 * np.tan(transform['camera_angle_x'] / 2)) if 'camera_angle_x' in transform else None
+            fl_y = self.H / (2 * np.tan(transform['camera_angle_y'] / 2)) if 'camera_angle_y' in transform else None
+            if fl_x is None: fl_x = fl_y
+            if fl_y is None: fl_y = fl_x
+        else:
+            raise RuntimeError('Failed to load focal length, please check the transforms.json!')
+
+        cx = (transform['cx'] / downscale) if 'cx' in transform else (self.W / 2)
+        cy = (transform['cy'] / downscale) if 'cy' in transform else (self.H / 2)
+    
+        self.intrinsics = np.array([fl_x, fl_y, cx, cy])
+
+
+    def collate(self, index):
+
+        B = len(index) # a list of length 1
+
+        poses = self.poses[index].to(self.device) # [B, 4, 4]
+
+        error_map = None if self.error_map is None else self.error_map[index]
+        
+        rays = get_rays(poses, self.intrinsics, self.H, self.W, patch_size= self.opt.patch_size)
+        results = {
+            'H': self.H,
+            'W': self.W,
+            'rays_o': rays['rays_o'],
+            'rays_d': rays['rays_d'],
+        }
+            
+        return results
+
+    def dataloader(self):
+        size = len(self.poses)
+        loader = DataLoader(list(range(size)), batch_size=1, collate_fn=self.collate, num_workers=0)
+        loader._data = self # an ugly fix... we need to access error_map & poses in trainer.
+        return loader
+    

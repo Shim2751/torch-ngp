@@ -1,7 +1,7 @@
 import torch
 import argparse
 
-from nerf.provider import NeRFDataset
+from nerf.provider import NeRFDataset, PseudoDataset
 from nerf.gui import NeRFGUI
 from nerf.utils import *
 
@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
     elif opt.save_img:
         trainer = Trainer('ngp', opt, model, device=device, workspace=opt.workspace, criterion=criterion, fp16=opt.fp16, use_checkpoint=opt.ckpt)
-        save_img_loader = NeRFDataset(opt, device=device, type='test').dataloader()
+        save_img_loader = PseudoDataset(opt, device=device).dataloader()
         trainer.save_img(save_img_loader)
     
     else:
