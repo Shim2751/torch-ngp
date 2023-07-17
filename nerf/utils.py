@@ -641,7 +641,7 @@ class Trainer(object):
             name = f'r'
 
         with torch.no_grad():
-            for i, data in enumerate(loader):
+            for i, data in enumerate(tqdm.tqdm(loader)):
                 
                 with torch.cuda.amp.autocast(enabled=self.fp16):
                     preds, preds_depth = self.test_step(data)
@@ -656,7 +656,7 @@ class Trainer(object):
                 pred_depth = (pred_depth * 255).astype(np.uint8)
 
                 cv2.imwrite(os.path.join(save_path, f'{name}_{i}.png'), cv2.cvtColor(pred, cv2.COLOR_RGB2BGR))
-                cv2.imwrite(os.path.join(save_path, f'{name}_{i}_depth.png'), pred_depth)
+                # cv2.imwrite(os.path.join(save_path, f'{name}_{i}_depth.png'), pred_depth)
         
         self.log(f"==> Finished Saving Images.")
 
