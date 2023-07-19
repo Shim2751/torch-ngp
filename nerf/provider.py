@@ -344,7 +344,6 @@ class PseudoDataset:
         self.offset = opt.offset # camera offset
         self.bound = opt.bound # bounding box half length, also used as the radius to random sample poses.
         self.fp16 = opt.fp16 # if preload, load into fp16.
-
         self.rand_pose = opt.rand_pose
 
         # load nerf-compatible format data.

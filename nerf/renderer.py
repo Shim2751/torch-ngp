@@ -218,6 +218,10 @@ class NeRFRenderer(nn.Module):
 
         #print(xyzs.shape, 'valid_rgb:', mask.sum().item())
 
+        #sampling top 10 weights
+        indices = torch.argsort(weights, descending=True, dim = 0)
+        weights = torch.where(indices>20, torch.tensor(0.0), weights)
+
         # calculate weight_sum (mask)
         weights_sum = weights.sum(dim=-1) # [N]
         

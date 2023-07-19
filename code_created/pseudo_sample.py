@@ -22,7 +22,7 @@ def sample_spherical(r, npoints):
     x = r*np.sin(phi)*np.cos(theta)
     y = r*np.sin(phi)*np.sin(theta)
     z = r*np.cos(phi)
-    
+
     return x, y, z
 
 def extract_coord(pos, r):
@@ -30,20 +30,15 @@ def extract_coord(pos, r):
     for x, y, z in pos:
         a,b,c = x/r, y/r, z/r
         
-        
-        d,e,f = 1*a*b,-1+b*b,1*c*b
+        d,e,f = -1*a*c,-1*c*b,1-c*c
         l = np.sqrt(d**2+e**2+f**2)
         d,e,f = d/l, e/l, f/l
 
-        if(x>0):
-            sign = -1
-        else:
-            sign = 1
-        g,h,i = sign*np.cross([a,b,c],[d,e,f])     
+        g,h,i = np.cross([a,b,c],[d,e,f])
 
-        cam_coord = [[d,g,a,x]]
-        cam_coord.append([e,h,b,y])
-        cam_coord.append([f,i,c,z])
+        cam_coord = [[g,d,a,x]]
+        cam_coord.append([h,e,b,y])
+        cam_coord.append([i,f,c,z])
         cam_coord.append([0.0, 0.0, 0.0, 1.0])
         cam_coord_col.append(cam_coord)
     return cam_coord_col
@@ -71,7 +66,7 @@ def main():
     for i in range(len(n)):
         pos = np.array(sample_spherical(r[i], n[i])).T
         trans_mat.append(extract_coord(pos, r[i]))
-    """visualize
+    """visualize debug
 
     fig, ax = plt.subplots(1, 1, subplot_kw={'projection':'3d', 'aspect':'equal'})
     x, y, z = pos.T

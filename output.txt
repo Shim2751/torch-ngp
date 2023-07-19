@@ -1,0 +1,20 @@
+Namespace(H=1080, O=False, W=1920, bg_radius=-1, bound=1.0, ckpt='latest', clip_text='', color_space='srgb', cuda_ray=False, density_thresh=10, dt_gamma=0.0, error_map=False, ff=False, fovy=50, fp16=True, gui=False, iters=30000, lr=0.01, max_ray_batch=4096, max_spp=64, max_steps=1024, min_near=0.2, num_rays=4096, num_steps=512, offset=[0, 0, 0], patch_size=1, path='data/nerf_synthetic/lego', preload=False, radius=5, rand_pose=-1, save_img=False, scale=0.8, seed=0, tcnn=True, test=True, update_extra_interval=16, upsample_steps=0, workspace='lego_O')
+NeRFNetwork(
+  (encoder): Encoding(n_input_dims=3, n_output_dims=32, seed=1337, dtype=torch.float16, hyperparams={'base_resolution': 16, 'hash': 'CoherentPrime', 'interpolation': 'Linear', 'log2_hashmap_size': 19, 'n_features_per_level': 2, 'n_levels': 16, 'otype': 'Grid', 'per_level_scale': 1.3819128274917603, 'type': 'Hash'})
+  (sigma_net): Network(n_input_dims=32, n_output_dims=16, seed=1337, dtype=torch.float16, hyperparams={'encoding': {'offset': 0.0, 'otype': 'Identity', 'scale': 1.0}, 'network': {'activation': 'ReLU', 'n_hidden_layers': 1, 'n_neurons': 64, 'otype': 'FullyFusedMLP', 'output_activation': 'None'}, 'otype': 'NetworkWithInputEncoding'})
+  (encoder_dir): Encoding(n_input_dims=3, n_output_dims=16, seed=1337, dtype=torch.float16, hyperparams={'degree': 4, 'otype': 'SphericalHarmonics'})
+  (color_net): Network(n_input_dims=31, n_output_dims=3, seed=1337, dtype=torch.float16, hyperparams={'encoding': {'offset': 0.0, 'otype': 'Identity', 'scale': 1.0}, 'network': {'activation': 'ReLU', 'n_hidden_layers': 2, 'n_neurons': 64, 'otype': 'FullyFusedMLP', 'output_activation': 'None'}, 'otype': 'NetworkWithInputEncoding'})
+)
+Setting up [LPIPS] perceptual loss: trunk [alex], v[0.1], spatial [off]
+Loading model from: /opt/conda/lib/python3.8/site-packages/lpips/weights/v0.1/alex.pth
+[INFO] Trainer: ngp | 2023-07-18_07-19-24 | cuda | fp16 | lego_O
+[INFO] #parameters: 12206480
+[INFO] Loading latest checkpoint ...
+[INFO] Latest checkpoint is lego_O/checkpoints/ngp_ep0300.pth
+[INFO] loaded model.
+[WARN] unexpected keys: ['density_grid', 'density_bitfield', 'step_counter']
+[INFO] load at epoch 300, global step 30000
+[WARN] Failed to load optimizer.
+[INFO] loaded scheduler.
+[INFO] loaded scaler.
+++> Evaluate at epoch 300 ...
